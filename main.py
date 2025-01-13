@@ -185,18 +185,19 @@ async def episode(episode_slug: str):
 
 
 @app.get("/genres")
-def genres():
+async def genres():
     try:
+        data = await scrape_genres_list()
         return {
             "status": "Ok",
-            "data": {"Genre: ": "Genre"},
+            "data": {"data: ": data},
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
 
 
-@app.get("/genre/{genre}")
-async def genre(genre: str):
+@app.get("/genre/{slug}")
+async def genre(slug: str):
     try:
         return {
             "status": "Ok",
