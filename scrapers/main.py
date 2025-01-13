@@ -176,6 +176,15 @@ async def scrape_single_genre(slug: str, page: int = 1) -> Dict:
         html_soup = await fetch_html(session, url)
         venser = html_soup.find("div", class_="venser")
         for anime in venser.find_all("div", class_="col-anime"):
+            genres = []
+            for genre in anime.find("div", class_="col-anime-genre").find_all("a"):
+                genres.append(
+                    {
+                        "name": genre.text,
+                        "slug": genre["href"].split("/")[-2],
+                        "url": genre["href"],
+                    }
+                )
             data.append(
                 {
                     "title": anime.find("div", class_="col-anime-title").text,
@@ -186,7 +195,7 @@ async def scrape_single_genre(slug: str, page: int = 1) -> Dict:
                     "season": anime.find("div", class_="col-anime-date").text,
                     "studio": anime.find("div", class_="col-anime-studio").text,
                     "synopsis": anime.find("div", class_="col-synopsis").text,
-                    "genre": anime.find("div", class_="col-anime-genre").text,
+                    "genres": genres,
                     "url": anime.find("a")["href"],
                 }
             )
