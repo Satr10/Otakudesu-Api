@@ -197,9 +197,9 @@ async def genres():
 
 
 @app.get("/genres/{slug}")
-async def genre(slug: str):
+async def genre(slug: str, page: Optional[int] = 1):
     try:
-        data = await scrape_single_genre(slug)
+        data = await scrape_single_genre(slug, page)
         return {
             "status": "Ok",
             "data": {"Genre: ": slug, "anime": data},
