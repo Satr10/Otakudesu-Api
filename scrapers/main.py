@@ -1,6 +1,4 @@
-import asyncio
 from typing import List, Dict
-
 import aiohttp
 from bs4 import BeautifulSoup
 
