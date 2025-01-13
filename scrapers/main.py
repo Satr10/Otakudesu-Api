@@ -153,7 +153,6 @@ async def scrape_genres_list() -> Dict:
                     "url": BASE_URL + genre["href"],
                 }
             )
-            # data[genre.text] = BASE_URL + genre["href"]
     return data
 
 
