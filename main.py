@@ -196,12 +196,13 @@ async def genres():
         return {"status": "Error", "message": str(e)}
 
 
-@app.get("/genre/{slug}")
+@app.get("/genres/{slug}")
 async def genre(slug: str):
     try:
+        data = await scrape_single_genre(slug)
         return {
             "status": "Ok",
-            "data": {"Genre: ": "Genre"},
+            "data": {"Genre: ": slug, "anime": data},
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
