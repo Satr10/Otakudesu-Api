@@ -185,6 +185,8 @@ async def scrape_single_genre(slug: str, page: int = 1) -> Dict:
                     "episode": anime.find("div", class_="col-anime-eps").text,
                     "season": anime.find("div", class_="col-anime-date").text,
                     "studio": anime.find("div", class_="col-anime-studio").text,
+                    "synopsis": anime.find("div", class_="col-synopsis").text,
+                    "genre": anime.find("div", class_="col-anime-genre").text,
                     "url": anime.find("a")["href"],
                 }
             )
@@ -195,5 +197,5 @@ async def scrape_single_genre(slug: str, page: int = 1) -> Dict:
 if __name__ == "__main__":
     import asyncio
 
-    data = asyncio.run(scrape_anime_episodes("salaryman-isekai-sub-indo"))
+    data = asyncio.run(scrape_single_genre("romance"))
     print(data)
