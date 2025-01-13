@@ -202,7 +202,7 @@ async def genre(slug: str, page: Optional[int] = 1):
         data = await scrape_single_genre(slug, page)
         return {
             "status": "Ok",
-            "data": {"Genre: ": slug, "anime": data},
+            "data": {"anime": data},
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
