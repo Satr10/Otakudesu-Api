@@ -12,12 +12,17 @@ async def fetch_html(session: aiohttp.ClientSession, url: str) -> BeautifulSoup:
         return BeautifulSoup(html, "html.parser")
 
 
-async def extract_anime_data(anime) -> Dict:
+async def extract_anime_data(anime, status: str) -> Dict:
     """Mengekstrak data anime dari elemen BeautifulSoup."""
     return {
         "title": anime.find("h2").text,
         "episode": anime.find("div", class_="epz").text,
-        "rating": anime.find("div", class_="epztipe").text,
+        "schedule": (
+            anime.find("div", class_="epztipe").text if status == "Ongoing" else None
+        ),
+        "rating": (
+            anime.find("div", class_="epztipe").text if status == "Completed" else None
+        ),
         "date": anime.find("div", class_="newnime").text,
         "slug": anime.find("a")["href"].split("/")[-2],
         "image": anime.find("img")["src"],
@@ -32,7 +37,7 @@ async def scrape_airing_anime(page: int = 1) -> List[Dict]:
         html_soup = await fetch_html(session, url)
         venz = html_soup.find("div", class_="venz")
         anime_list = venz.find_all("div", class_="detpost")
-        return [await extract_anime_data(anime) for anime in anime_list]
+        return [await extract_anime_data(anime, "Ongoing") for anime in anime_list]
 
 
 async def scrape_completed_anime(page: int = 1) -> List[Dict]:
@@ -41,7 +46,7 @@ async def scrape_completed_anime(page: int = 1) -> List[Dict]:
     async with aiohttp.ClientSession() as session:
         html_soup = await fetch_html(session, url)
         anime_list = html_soup.find_all("div", class_="detpost")
-        return [await extract_anime_data(anime) for anime in anime_list]
+        return [await extract_anime_data(anime, "Completed") for anime in anime_list]
 
 
 async def scrape_search_anime(query: str) -> List[Dict]:
@@ -63,19 +68,17 @@ async def scrape_search_anime(query: str) -> List[Dict]:
         ]
 
 
-async def scrape_anime(slug: str) -> Dict:
-    """Mengambil detail tentang anime tertentu."""
-    data = {}
-    url = f"{BASE_URL}/anime/{slug}/"
-    async with aiohttp.ClientSession() as session:
-        html_soup = await fetch_html(session, url)
-        venser = html_soup.find("div", class_="venser")
+async def scrape_anime(slug: str):
+    url = f"https://otakudesu.cloud/anime/{slug}/"
 
-        # Mengekstrak informasi umum anime
-        for i, key in enumerate(
-            [
-                "title",
-                "image",
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            html_soup = BeautifulSoup(await response.text(), "html.parser")
+            venser = html_soup.find("div", class_="venser")
+
+            # Extract basic information
+            info_texts = [p.text.split(": ", 1)[1] for p in venser.find_all("p")[1:11]]
+            keys = [
                 "japanese_title",
                 "rating",
                 "producer",
@@ -87,23 +90,32 @@ async def scrape_anime(slug: str) -> Dict:
                 "studio",
                 "genre",
             ]
-        ):
-            data[key] = venser.find_all("p")[i].text.split(": ", 1)[1]
+            data = dict(zip(keys, info_texts))
 
-        episode_list = html_soup.find_all("ul")[3]
-        data["episode_list"] = [
-            {
-                "episode": episode.find("a").text,
-                "slug": episode.find("a")["href"].split("/")[-2],
-                "url": episode.find("a")["href"],
-            }
-            for episode in episode_list.find_all("li")
-        ]
+            data.update(
+                {
+                    "title": venser.find("h1").text,
+                    "image": venser.find("img")["src"],
+                }
+            )
 
-        batch_list = html_soup.find_all("ul")[2]
-        data["batch"] = batch_list.find("a")["href"]
+            # Extract episode list
+            episode_list = html_soup.find_all("ul")[3]
+            data["episode_list"] = [
+                {
+                    "episode": ep.find("a").text,
+                    "slug": ep.find("a")["href"].split("/")[-2],
+                    "url": ep.find("a")["href"],
+                }
+                for ep in episode_list.find_all("li")
+            ]
 
-        return data
+            # Extract batch if completed
+            if data["status"] == "Completed":
+                batch_list = venser.find_all("ul")[2]
+                data["batch"] = batch_list.find("a")["href"]
+
+            return data
 
 
 async def scrape_anime_episodes(slug: str) -> Dict:
@@ -156,10 +168,10 @@ async def scrape_genres_list() -> Dict:
     return data
 
 
-async def scrape_single_genre(slug: str) -> Dict:
+async def scrape_single_genre(slug: str, page: int = 1) -> Dict:
     """Mengambil detail dan link download dari episode tertentu."""
     data = []
-    url = f"{BASE_URL}/genres/{slug}/"
+    url = f"{BASE_URL}/genres/{slug}/page/{page}/"
     async with aiohttp.ClientSession() as session:
         html_soup = await fetch_html(session, url)
         venser = html_soup.find("div", class_="venser")
@@ -168,7 +180,12 @@ async def scrape_single_genre(slug: str) -> Dict:
                 {
                     "title": anime.find("div", class_="col-anime-title").text,
                     "slug": anime.find("a")["href"].split("/")[-2],
-                    "url": BASE_URL + anime.find("a")["href"],
+                    "image": anime.find("img")["src"],
+                    "rating": anime.find("div", class_="col-anime-rating").text,
+                    "episode": anime.find("div", class_="col-anime-eps").text,
+                    "season": anime.find("div", class_="col-anime-date").text,
+                    "studio": anime.find("div", class_="col-anime-studio").text,
+                    "url": anime.find("a")["href"],
                 }
             )
 
@@ -178,5 +195,5 @@ async def scrape_single_genre(slug: str) -> Dict:
 if __name__ == "__main__":
     import asyncio
 
-    data = asyncio.run(scrape_single_genre("romance"))
+    data = asyncio.run(scrape_anime_episodes("salaryman-isekai-sub-indo"))
     print(data)
