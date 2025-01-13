@@ -159,8 +159,27 @@ async def scrape_genres_list() -> Dict:
     return data
 
 
+async def scrape_single_genre(slug: str) -> Dict:
+    """Mengambil detail dan link download dari episode tertentu."""
+    data = []
+    url = f"{BASE_URL}/genres/{slug}/"
+    async with aiohttp.ClientSession() as session:
+        html_soup = await fetch_html(session, url)
+        venser = html_soup.find("div", class_="venser")
+        for anime in venser.find_all("div", class_="col-anime"):
+            data.append(
+                {
+                    "title": anime.find("div", class_="col-anime-title").text,
+                    "slug": anime.find("a")["href"].split("/")[-2],
+                    "url": BASE_URL + anime.find("a")["href"],
+                }
+            )
+
+    return data
+
+
 if __name__ == "__main__":
     import asyncio
 
-    data = asyncio.run(scrape_genres_list())
+    data = asyncio.run(scrape_single_genre("romance"))
     print(data)
