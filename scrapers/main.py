@@ -138,8 +138,29 @@ async def scrape_single_episode(slug: str) -> Dict:
         return data
 
 
+async def scrape_genres_list() -> Dict:
+    """Mengambil daftar genre dan URL-nya."""
+    data = []
+    url = f"{BASE_URL}/genre-list/"
+    async with aiohttp.ClientSession() as session:
+        html_soup = await fetch_html(session, url)
+        genres_section = html_soup.find("ul", class_="genres")
+        genres = genres_section.find("li")
+
+        for genre in genres.find_all("a"):
+            data.append(
+                {
+                    "name": genre.text,
+                    "slug": genre["href"].split("/")[-2],
+                    "url": BASE_URL + genre["href"],
+                }
+            )
+            # data[genre.text] = BASE_URL + genre["href"]
+    return data
+
+
 if __name__ == "__main__":
     import asyncio
 
-    data = asyncio.run(scrape_single_episode("snk-ova-3-sub-indo/"))
+    data = asyncio.run(scrape_genres_list())
     print(data)
