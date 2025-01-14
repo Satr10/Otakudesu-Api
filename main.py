@@ -23,28 +23,8 @@ async def home():
         return {
             "status": "Ok",
             "data": {
-                "airing": [
-                    {
-                        "title": anime["title"],
-                        "episode": anime["episode"],
-                        "schedule": anime["schedule"],
-                        "date": anime["date"],
-                        "slug": anime["slug"],
-                        "url": anime["url"],
-                    }
-                    for anime in airing
-                ],
-                "completed": [
-                    {
-                        "title": anime["title"],
-                        "episode": anime["episode"],
-                        "rating": anime["rating"],
-                        "date": anime["date"],
-                        "slug": anime["slug"],
-                        "url": anime["url"],
-                    }
-                    for anime in completed
-                ],
+                "airing": airing,
+                "completed": completed,
             },
         }
     except Exception as e:
@@ -57,18 +37,7 @@ async def ongoing_anime(page: Optional[int] = 1):
         airing = await scrape_airing_anime(page)
         return {
             "status": "Ok",
-            "data": [
-                {
-                    "title": anime["title"],
-                    "episode": anime["episode"],
-                    "schedule": anime["schedule"],
-                    "date": anime["date"],
-                    "slug": anime["slug"],
-                    "image": anime["image"],
-                    "url": anime["url"],
-                }
-                for anime in airing
-            ],
+            "data": airing,
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
@@ -80,18 +49,7 @@ async def completed_anime(page: Optional[int] = 1):
         completed = await scrape_completed_anime(page)
         return {
             "status": "Ok",
-            "data": [
-                {
-                    "title": anime["title"],
-                    "episode": anime["episode"],
-                    "rating": anime["rating"],
-                    "date": anime["date"],
-                    "slug": anime["slug"],
-                    "image": anime["image"],
-                    "url": anime["url"],
-                }
-                for anime in completed
-            ],
+            "data": completed,
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
@@ -103,17 +61,7 @@ async def search(query: str):
         result = await scrape_search_anime(query)
         return {
             "status": "Ok",
-            "data": [
-                {
-                    "title": anime["title"],
-                    "status": anime["status"],
-                    "rating": anime["rating"],
-                    "slug": anime["slug"],
-                    "image": anime["image"],
-                    "url": anime["url"],
-                }
-                for anime in result
-            ],
+            "data": result,
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
