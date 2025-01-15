@@ -73,22 +73,7 @@ async def anime(slug: str):
         data = await scrape_anime(slug)
         return {
             "status": "Ok",
-            "data": {
-                "title": data["title"],
-                "image": data["image"],
-                "japanese_title": data["japanese_title"],
-                "rating": data["rating"],
-                "producer": data["producer"],
-                "type": data["type"],
-                "status": data["status"],
-                "episode_total": data["episode_total"],
-                "duration": data["duration"],
-                "release_date": data["release_date"],
-                "studio": data["studio"],
-                "genre": data["genre"],
-                "episode_list": data["episode_list"],
-                "batch": data["batch"],
-            },
+            "data": data,
         }
     except Exception as e:
         return {"status": "Error", "message": str(e)}
