@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from typing import Optional
-from scrapers.main import *
+from api.scrapers.main import *
 import asyncio
 
 app = FastAPI()
