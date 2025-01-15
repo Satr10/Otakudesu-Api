@@ -132,18 +132,33 @@ async def scrape_single_episode(slug: str) -> Dict:
         html_soup = await fetch_html(session, url)
         download_section = html_soup.find("div", class_="download")
         episode_title = download_section.find("h4").text
-        video_quality = download_section.find("ul")
+        video_quality = download_section.find_all("ul")
 
         data = {
             "episode_title": episode_title,
-            "download_links": [
-                {
-                    quality.find("strong").text: {
-                        link.text: link["href"] for link in quality.find_all("a")
+            "download_links": {
+                "MP4": [
+                    {
+                        quality.find("strong").text: {
+                            link.text: link["href"] for link in quality.find_all("a")
+                        }
                     }
-                }
-                for quality in video_quality.find_all("li")
-            ],
+                    for quality in video_quality[0].find_all("li")
+                ],
+                "MKV": (
+                    [
+                        {
+                            quality.find("strong").text: {
+                                link.text: link["href"]
+                                for link in quality.find_all("a")
+                            }
+                        }
+                        for quality in video_quality[1].find_all("li")
+                    ]
+                    if len(video_quality) > 1
+                    else ["MKV not available"]
+                ),
+            },
         }
         return data
 
