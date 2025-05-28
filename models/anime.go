@@ -33,3 +33,18 @@ type Episode struct {
 	Slug         string `json:"slug"`
 	URL          string `json:"url"`
 }
+
+type EpisodePage struct {
+	Downloads []EpisodeDownloads `json:"downloads"`
+}
+
+type EpisodeDownloads struct {
+	Quality   string     `json:"quality"`
+	Size      string     `json:"size"`
+	Downloads []Download `json:"downloads"`
+}
+
+type Download struct {
+	Provider    string `json:"provider"`
+	DownloadURL string `json:"downloadUrl"`
+}
