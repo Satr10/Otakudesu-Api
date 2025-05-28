@@ -17,4 +17,6 @@ func InitRouter(app *fiber.App) {
 	api.Get("/anime/:slug", handlers.AnimeDetailApi)
 	api.Get("/episode/:slug", handlers.EpisodeApi)
 	api.Get("/genre-list", handlers.GenreLIstApi)
+	api.Get("/genre/:slug", handlers.GenreApi)
+	api.Get("/genre/:slug/:page", handlers.GenreApi)
 }
