@@ -233,9 +233,28 @@ func (s *Scraper) EpisodeDetailPage(slug string) (episode models.EpisodePage, er
 
 	err = s.collector.Visit(fmt.Sprintf("%v/episode/%v", OtakudesuBaseURL, slug))
 	if err != nil {
-		return episode, err
+		return models.EpisodePage{}, err
 	}
 
 	return episode, nil
+
+}
+
+func (s *Scraper) GenresPage() (genres models.Genres, err error) {
+	s.collector.OnHTML(`ul.genres li`, func(h *colly.HTMLElement) {
+		h.ForEach(`a`, func(i int, h *colly.HTMLElement) {
+			genre := models.Genre{}
+			genre.Slug = h.Attr(`href`)
+			genre.Title = h.Text
+			genre.URL = fmt.Sprintf("%v%v", OtakudesuBaseURL, h.Attr(`href`))
+			genres.Genres = append(genres.Genres, genre)
+		})
+	})
+	err = s.collector.Visit(fmt.Sprintf("%v/genre-list", OtakudesuBaseURL))
+	if err != nil {
+		return models.Genres{}, err
+	}
+
+	return genres, nil
 
 }
