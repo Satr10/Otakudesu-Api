@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Satr10/Otakudesu-Api/models"
 	"github.com/gocolly/colly"
@@ -35,7 +36,7 @@ func ExtractAnime(h *colly.HTMLElement, isOngoing bool) (anime models.Anime) {
 		anime.Schedule = nil
 	}
 	anime.Date = h.ChildText(`div.newnime`)
-	anime.Slug = h.ChildAttr(`a`, `href`)
+	anime.Slug = extractSlug(h.ChildAttr(`a`, `href`))
 	anime.Image = h.ChildAttr(`img`, `src`)
 	anime.URL = h.ChildAttr(`a`, `href`)
 	return anime
@@ -74,6 +75,27 @@ func (s *Scraper) CompletedPage(page string) (animes []models.Anime, err error) 
 		animes = append(animes, anime)
 	})
 	err = s.collector.Visit(fmt.Sprintf("%v/complete-anime/page/%v", OtakudesuBaseURL, page))
+	if err != nil {
+		return nil, err
+	}
+	return animes, nil
+}
+
+func (s *Scraper) SearchPage(searchQuery string) (animes []models.Anime, err error) {
+	s.collector.OnHTML(`ul.chivsrc`, func(h *colly.HTMLElement) {
+		h.ForEach(`li`, func(i int, liH *colly.HTMLElement) {
+			anime := models.Anime{}
+			anime.Title = liH.ChildText(`h2`)
+			anime.Status = strings.ReplaceAll(liH.ChildText(`div:nth-of-type(2)`), "Status : ", "")
+			animeRating := strings.ReplaceAll(liH.ChildText(`div:nth-of-type(3)`), "Rating : ", "")
+			anime.Rating = &animeRating
+			anime.Slug = extractSlug(liH.ChildAttr(`a`, `href`))
+			anime.Image = liH.ChildAttr(`img`, `src`)
+			anime.URL = liH.ChildAttr(`a`, `href`)
+			animes = append(animes, anime)
+		})
+	})
+	err = s.collector.Visit(fmt.Sprintf("%v//?s=%v&post_type=anime", OtakudesuBaseURL, strings.ReplaceAll(searchQuery, " ", "+")))
 	if err != nil {
 		return nil, err
 	}
