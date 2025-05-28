@@ -29,10 +29,12 @@ func ExtractAnime(h *colly.HTMLElement, isOngoing bool) (anime models.Anime) {
 	if isOngoing {
 		schedule := h.ChildText(`div.epztipe`)
 		anime.Schedule = &schedule
+		anime.Status = "Ongoing"
 		anime.Rating = nil
 	} else {
 		rating := h.ChildText(`div.epztipe`)
 		anime.Rating = &rating
+		anime.Status = "Completed"
 		anime.Schedule = nil
 	}
 	anime.Date = h.ChildText(`div.newnime`)
