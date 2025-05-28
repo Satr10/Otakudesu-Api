@@ -244,7 +244,7 @@ func (s *Scraper) GenresPage() (genres models.Genres, err error) {
 	s.collector.OnHTML(`ul.genres li`, func(h *colly.HTMLElement) {
 		h.ForEach(`a`, func(i int, h *colly.HTMLElement) {
 			genre := models.Genre{}
-			genre.Slug = h.Attr(`href`)
+			genre.Slug = extractSlug(h.Attr(`href`))
 			genre.Title = h.Text
 			genre.URL = fmt.Sprintf("%v%v", OtakudesuBaseURL, h.Attr(`href`))
 			genres.Genres = append(genres.Genres, genre)
