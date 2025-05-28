@@ -1,6 +1,8 @@
 package scraper
 
 import (
+	"fmt"
+
 	"github.com/Satr10/Otakudesu-Api/models"
 	"github.com/gocolly/colly"
 )
@@ -20,7 +22,7 @@ func NewScraper() *Scraper {
 	return &Scraper{collector: c}
 }
 
-func ExtractAnime(_ int, h *colly.HTMLElement, isOngoing bool) (anime models.Anime) {
+func ExtractAnime(h *colly.HTMLElement, isOngoing bool) (anime models.Anime) {
 	anime.Title = h.ChildText(`h2.jdlflm`)
 	anime.Episode = h.ChildText(`div.epz`)
 	if isOngoing {
@@ -41,8 +43,8 @@ func ExtractAnime(_ int, h *colly.HTMLElement, isOngoing bool) (anime models.Ani
 
 func (s *Scraper) HomePage() (animes []models.Anime, err error) {
 	s.collector.OnHTML(`div.venz`, func(h *colly.HTMLElement) {
-		h.ForEach(`li`, func(i int, lih *colly.HTMLElement) {
-			anime := ExtractAnime(i, lih, true)
+		h.ForEach(`li`, func(_ int, lih *colly.HTMLElement) {
+			anime := ExtractAnime(lih, true)
 			animes = append(animes, anime)
 		})
 	})
@@ -52,4 +54,28 @@ func (s *Scraper) HomePage() (animes []models.Anime, err error) {
 	}
 	return animes, nil
 
+}
+
+func (s *Scraper) OngoingPage(page string) (animes []models.Anime, err error) {
+	s.collector.OnHTML(`div.detpost`, func(h *colly.HTMLElement) {
+		anime := ExtractAnime(h, true)
+		animes = append(animes, anime)
+	})
+	err = s.collector.Visit(fmt.Sprintf("%v/ongoing-anime/page/%v", OtakudesuBaseURL, page))
+	if err != nil {
+		return nil, err
+	}
+	return animes, nil
+}
+
+func (s *Scraper) CompletedPage(page string) (animes []models.Anime, err error) {
+	s.collector.OnHTML(`div.detpost`, func(h *colly.HTMLElement) {
+		anime := ExtractAnime(h, false)
+		animes = append(animes, anime)
+	})
+	err = s.collector.Visit(fmt.Sprintf("%v/complete-anime/page/%v", OtakudesuBaseURL, page))
+	if err != nil {
+		return nil, err
+	}
+	return animes, nil
 }
