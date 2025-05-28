@@ -133,3 +133,19 @@ func EpisodeApi(c *fiber.Ctx) error {
 	})
 
 }
+
+func GenreLIstApi(c *fiber.Ctx) error {
+	result, err := scraper.NewScraper().GenresPage()
+	if err != nil {
+		return c.JSON(ApiResponse{
+			Status:  "failed",
+			Message: "failed to fetch anime",
+			Data:    nil,
+		})
+	}
+	return c.JSON(ApiResponse{
+		Status:  "success",
+		Message: "",
+		Data:    result,
+	})
+}
