@@ -147,6 +147,28 @@ func (s *Scraper) SearchPage(searchQuery string) (animes []models.Anime, err err
 	return animes, nil
 }
 
+// AnimePage scrapes the anime page of Otakudesu and returns a models.AnimeDetail instance.
+//
+// The method takes a slug as a parameter, which is the URL path of the anime
+// page. For example, if the URL of the anime page is https://otakudesu.cloud/anime/naruto,
+// then the slug is "naruto".
+//
+// The returned models.AnimeDetail instance contains the following fields:
+//
+//   - Title: The title of the anime.
+//   - JapaneseTitle: The Japanese title of the anime.
+//   - Rating: The rating of the anime.
+//   - Producer: The producer of the anime.
+//   - Type: The type of the anime (e.g. TV, OVA, etc.).
+//   - Status: The status of the anime (e.g. Ongoing, Completed, etc.).
+//   - EpisodeTotal: The total number of episodes of the anime.
+//   - Duration: The duration of each episode of the anime.
+//   - ReleaseDate: The release date of the anime.
+//   - Studio: The studio that produced the anime.
+//   - Genre: The genre of the anime.
+//   - Synopsis: The synopsis of the anime.
+//   - Episodes: A slice of models.Episode instances, which contain the episode title,
+//     slug, and URL.
 func (s *Scraper) AnimePage(slug string) (anime models.AnimeDetail, err error) {
 	s.collector.OnHTML(`div.infozingle`, func(h *colly.HTMLElement) {
 		anime.Title = strings.ReplaceAll(h.ChildText(`p:nth-of-type(1)`), "Judul: ", "")
