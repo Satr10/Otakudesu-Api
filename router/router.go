@@ -10,5 +10,8 @@ func InitRouter(app *fiber.App) {
 	api.Get("/", handlers.ApiIndex)
 	api.Get("/home", handlers.HomeApi)
 	api.Get("/ongoing/:page", handlers.OngoingApi)
+	api.Get("/ongoing", handlers.OngoingApi)
 	api.Get("/completed/:page", handlers.CompletedApi)
+	api.Get("/completed", handlers.CompletedApi)
+	api.Get("/search/:query", handlers.SearchApi)
 }
