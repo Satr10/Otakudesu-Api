@@ -48,3 +48,13 @@ type Download struct {
 	Provider    string `json:"provider"`
 	DownloadURL string `json:"downloadUrl"`
 }
+
+type Genres struct {
+	Genres []Genre `json:"genres"`
+}
+
+type Genre struct {
+	Title string `json:"title"`
+	Slug  string `json:"slug"`
+	URL   string `json:"url"`
+}
