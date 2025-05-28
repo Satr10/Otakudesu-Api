@@ -14,4 +14,5 @@ func InitRouter(app *fiber.App) {
 	api.Get("/completed/:page", handlers.CompletedApi)
 	api.Get("/completed", handlers.CompletedApi)
 	api.Get("/search/:query", handlers.SearchApi)
+	api.Get("/anime/:slug", handlers.AnimeDetailApi)
 }
