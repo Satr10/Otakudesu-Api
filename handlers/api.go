@@ -149,3 +149,24 @@ func GenreLIstApi(c *fiber.Ctx) error {
 		Data:    result,
 	})
 }
+
+func GenreApi(c *fiber.Ctx) error {
+	slug := c.Params("slug")
+	page := c.Params("page")
+	if page == "" {
+		page = "1"
+	}
+	result, err := scraper.NewScraper().GenrePage(slug, page)
+	if err != nil {
+		return c.JSON(ApiResponse{
+			Status:  "failed",
+			Message: "failed to fetch anime",
+			Data:    nil,
+		})
+	}
+	return c.JSON(ApiResponse{
+		Status:  "success",
+		Message: "",
+		Data:    result,
+	})
+}
