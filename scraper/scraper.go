@@ -205,3 +205,37 @@ func (s *Scraper) AnimePage(slug string) (anime models.AnimeDetail, err error) {
 	}
 	return anime, nil
 }
+
+// EpisodeDetailPage scrapes the episode page of Otakudesu and returns a models.EpisodePage
+// instance.
+//
+// The method takes a slug as a parameter, which is the URL path of the episode
+// page. For example, if the URL of the episode page is https://otakudesu.cloud/episode/naruto-episode-1,
+// then the slug is "naruto-episode-1".
+//
+// The returned models.EpisodePage instance contains the following fields:
+//
+//   - Downloads: A slice of models.EpisodeDownloads instances, which contain the
+//     quality, size, and download URLs of the episode.
+func (s *Scraper) EpisodeDetailPage(slug string) (episode models.EpisodePage, err error) {
+	s.collector.OnHTML(`div.download ul li`, func(h *colly.HTMLElement) {
+		episodeDL := models.EpisodeDownloads{}
+		episodeDL.Quality = h.ChildText(`strong`)
+		episodeDL.Size = h.ChildText(`i`)
+		h.ForEach(`a`, func(_ int, h *colly.HTMLElement) {
+			download := models.Download{}
+			download.DownloadURL = h.Attr(`href`)
+			download.Provider = h.Text
+			episodeDL.Downloads = append(episodeDL.Downloads, download)
+		})
+		episode.Downloads = append(episode.Downloads, episodeDL)
+	})
+
+	err = s.collector.Visit(fmt.Sprintf("%v/episode/%v", OtakudesuBaseURL, slug))
+	if err != nil {
+		return episode, err
+	}
+
+	return episode, nil
+
+}
