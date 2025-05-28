@@ -14,6 +14,11 @@ type Scraper struct {
 	collector *colly.Collector
 }
 
+// NewScraper creates a new Scraper instance.
+//
+// The instance is configured with a default user agent and a maximum depth
+// of 1. This means that the scraper will only traverse one level deep when
+// scraping the website.
 func NewScraper() *Scraper {
 	c := colly.NewCollector(
 		colly.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"),
@@ -23,6 +28,32 @@ func NewScraper() *Scraper {
 	return &Scraper{collector: c}
 }
 
+// ExtractAnime takes a colly.HTMLElement and a boolean indicating whether the
+// anime is ongoing or not, and returns a populated models.Anime instance.
+//
+// The boolean argument is used to determine whether to extract the schedule
+// or rating from the HTML element. If the anime is ongoing, the schedule
+// will be extracted; if it's completed, the rating will be extracted.
+//
+// The method will return a models.Anime instance with the following fields
+// populated:
+//
+//   - Title: The title of the anime, extracted from the element with class
+//     "jdlflm".
+//   - Episode: The episode number of the anime, extracted from the element with
+//     class "epz".
+//   - Schedule (if ongoing): The schedule of the anime, extracted from the
+//     element with class "epztipe".
+//   - Rating (if completed): The rating of the anime, extracted from the element
+//     with class "epztipe".
+//   - Date: The release date of the anime, extracted from the element with class
+//     "newnime".
+//   - Slug: The slug of the anime, extracted from the href attribute of the
+//     element with class "jdlflm".
+//   - Image: The image URL of the anime, extracted from the src attribute of the
+//     element with class "lazyload".
+//   - URL: The URL of the anime, extracted from the href attribute of the element
+//     with class "jdlflm".
 func ExtractAnime(h *colly.HTMLElement, isOngoing bool) (anime models.Anime) {
 	anime.Title = h.ChildText(`h2.jdlflm`)
 	anime.Episode = h.ChildText(`div.epz`)
@@ -44,6 +75,9 @@ func ExtractAnime(h *colly.HTMLElement, isOngoing bool) (anime models.Anime) {
 	return anime
 }
 
+// HomePage scrapes the home page of Otakudesu and returns a list of models.Anime
+// instances. The list contains the anime that are currently being shown on the
+// home page.
 func (s *Scraper) HomePage() (animes []models.Anime, err error) {
 	s.collector.OnHTML(`div.venz`, func(h *colly.HTMLElement) {
 		h.ForEach(`li`, func(_ int, lih *colly.HTMLElement) {
@@ -59,6 +93,9 @@ func (s *Scraper) HomePage() (animes []models.Anime, err error) {
 
 }
 
+// OngoingPage scrapes the ongoing page of Otakudesu and returns a list of
+// models.Anime instances. The list contains the anime that are currently
+// being shown on the ongoing page for the given page number.
 func (s *Scraper) OngoingPage(page string) (animes []models.Anime, err error) {
 	s.collector.OnHTML(`div.detpost`, func(h *colly.HTMLElement) {
 		anime := ExtractAnime(h, true)
@@ -71,6 +108,9 @@ func (s *Scraper) OngoingPage(page string) (animes []models.Anime, err error) {
 	return animes, nil
 }
 
+// CompletedPage scrapes the completed page of Otakudesu and returns a list of
+// models.Anime instances. The list contains the anime that are currently
+// being shown on the completed page for the given page number.
 func (s *Scraper) CompletedPage(page string) (animes []models.Anime, err error) {
 	s.collector.OnHTML(`div.detpost`, func(h *colly.HTMLElement) {
 		anime := ExtractAnime(h, false)
@@ -83,6 +123,9 @@ func (s *Scraper) CompletedPage(page string) (animes []models.Anime, err error) 
 	return animes, nil
 }
 
+// SearchPage scrapes the search page of Otakudesu and returns a list of models.Anime
+// instances. The list contains the anime that are currently being shown on the
+// search page for the given search query.
 func (s *Scraper) SearchPage(searchQuery string) (animes []models.Anime, err error) {
 	s.collector.OnHTML(`ul.chivsrc`, func(h *colly.HTMLElement) {
 		h.ForEach(`li`, func(i int, liH *colly.HTMLElement) {
@@ -97,7 +140,7 @@ func (s *Scraper) SearchPage(searchQuery string) (animes []models.Anime, err err
 			animes = append(animes, anime)
 		})
 	})
-	err = s.collector.Visit(fmt.Sprintf("%v//?s=%v&post_type=anime", OtakudesuBaseURL, strings.ReplaceAll(searchQuery, " ", "+")))
+	err = s.collector.Visit(fmt.Sprintf("%v//?s=%v&post_type=anime", OtakudesuBaseURL, strings.ReplaceAll(searchQuery, " ", "+"))) // replace space with plus
 	if err != nil {
 		return nil, err
 	}
