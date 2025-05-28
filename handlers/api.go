@@ -30,3 +30,45 @@ func HomeApi(c *fiber.Ctx) error {
 		Data:    animes,
 	})
 }
+
+func OngoingApi(c *fiber.Ctx) error {
+	page := c.Params("page")
+	if page == "" {
+		page = "1"
+	}
+	NewScraper := scraper.NewScraper()
+	animes, err := NewScraper.OngoingPage(page)
+	if err != nil {
+		return c.JSON(ApiResponse{
+			Status:  "failed",
+			Message: "failed to fetch animes",
+			Data:    nil,
+		})
+	}
+	return c.JSON(ApiResponse{
+		Status:  "success",
+		Message: "",
+		Data:    animes,
+	})
+}
+
+func CompletedApi(c *fiber.Ctx) error {
+	page := c.Params("page")
+	if page == "" {
+		page = "1"
+	}
+	NewScraper := scraper.NewScraper()
+	animes, err := NewScraper.CompletedPage(page)
+	if err != nil {
+		return c.JSON(ApiResponse{
+			Status:  "failed",
+			Message: "failed to fetch animes",
+			Data:    nil,
+		})
+	}
+	return c.JSON(ApiResponse{
+		Status:  "success",
+		Message: "",
+		Data:    animes,
+	})
+}
