@@ -72,3 +72,23 @@ func CompletedApi(c *fiber.Ctx) error {
 		Data:    animes,
 	})
 }
+
+func SearchApi(c *fiber.Ctx) error {
+	searchQuery := c.Params("query")
+
+	newScraper := scraper.NewScraper()
+	result, err := newScraper.SearchPage(searchQuery)
+	if err != nil {
+		return c.JSON(ApiResponse{
+			Status:  "failed",
+			Message: "failed to fetch anime",
+			Data:    nil,
+		})
+	}
+
+	return c.JSON(ApiResponse{
+		Status:  "success",
+		Message: "",
+		Data:    result,
+	})
+}
