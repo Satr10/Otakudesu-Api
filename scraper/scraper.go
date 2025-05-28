@@ -258,3 +258,25 @@ func (s *Scraper) GenresPage() (genres models.Genres, err error) {
 	return genres, nil
 
 }
+
+func (s *Scraper) GenrePage(slug string, page string) (animes []models.Anime, err error) {
+	s.collector.OnHTML(`div.col-anime`, func(h *colly.HTMLElement) {
+		anime := models.Anime{}
+		anime.Title = h.ChildText(`div.col-anime-title`)
+		anime.Episode = h.ChildText(`col-anime-eps`)
+		// anime.Status = ""
+		animeRating := h.ChildText(`div.col-anime-rating`)
+		anime.Rating = &animeRating
+		anime.Slug = h.ChildAttr(`div.col-anime-title a`, `href`)
+		anime.Image = h.ChildAttr(`div.col-anime-cover img`, `src`)
+		anime.Episode = strings.ReplaceAll(h.ChildText(`div.col-anime-eps`), " Eps", "")
+		anime.URL = h.ChildAttr(`div.col-anime-title a`, `href`)
+		animes = append(animes, anime)
+	})
+
+	err = s.collector.Visit(fmt.Sprintf("%v/genres/%v/page/%v", OtakudesuBaseURL, slug, page))
+	if err != nil {
+		return nil, err
+	}
+	return animes, nil
+}
