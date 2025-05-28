@@ -146,3 +146,40 @@ func (s *Scraper) SearchPage(searchQuery string) (animes []models.Anime, err err
 	}
 	return animes, nil
 }
+
+func (s *Scraper) AnimePage(slug string) (anime models.AnimeDetail, err error) {
+	s.collector.OnHTML(`div.infozingle`, func(h *colly.HTMLElement) {
+		anime.Title = strings.ReplaceAll(h.ChildText(`p:nth-of-type(1)`), "Judul: ", "")
+		anime.JapaneseTitle = strings.ReplaceAll(h.ChildText(`p:nth-of-type(2)`), "Japanese: ", "")
+		anime.Rating = strings.ReplaceAll(h.ChildText(`p:nth-of-type(3)`), "Skor: ", "")
+		anime.Producer = strings.ReplaceAll(h.ChildText(`p:nth-of-type(4)`), "Produser: ", "")
+		anime.Type = strings.ReplaceAll(h.ChildText(`p:nth-of-type(5)`), "Tipe: ", "")
+		anime.Status = strings.ReplaceAll(h.ChildText(`p:nth-of-type(6)`), "Status: ", "")
+		anime.EpisodeTotal = strings.ReplaceAll(h.ChildText(`p:nth-of-type(7)`), "Total Episode: ", "")
+		anime.Duration = strings.ReplaceAll(h.ChildText(`p:nth-of-type(8)`), "Durasi: ", "")
+		anime.ReleaseDate = strings.ReplaceAll(h.ChildText(`p:nth-of-type(9)`), "Tanggal Rilis: ", "")
+		anime.Studio = strings.ReplaceAll(h.ChildText(`p:nth-of-type(10)`), "Studio: ", "")
+		anime.Genre = strings.ReplaceAll(h.ChildText(`p:nth-of-type(11)`), "Genre: ", "")
+		// anime.Genre = h.ChildText(`p:nth-of-type(12)`)
+	})
+
+	s.collector.OnHTML(`div.sinopc`, func(h *colly.HTMLElement) {
+		anime.Synopsis = h.Text
+	})
+
+	s.collector.OnHTML(`div.episodelist`, func(h *colly.HTMLElement) {
+		h.ForEach(`li`, func(i int, lih *colly.HTMLElement) {
+			episode := models.Episode{}
+			episode.EpisodeTitle = lih.ChildText(`a`)
+			episode.Slug = extractSlug(lih.ChildAttr(`a`, `href`))
+			episode.URL = lih.ChildAttr(`a`, `href`)
+			anime.Episodes = append(anime.Episodes, episode)
+		})
+	})
+
+	err = s.collector.Visit(fmt.Sprintf("%v/anime/%v", OtakudesuBaseURL, slug))
+	if err != nil {
+		return models.AnimeDetail{}, err
+	}
+	return anime, nil
+}
