@@ -267,7 +267,7 @@ func (s *Scraper) GenrePage(slug string, page string) (animes []models.Anime, er
 		// anime.Status = ""
 		animeRating := h.ChildText(`div.col-anime-rating`)
 		anime.Rating = &animeRating
-		anime.Slug = h.ChildAttr(`div.col-anime-title a`, `href`)
+		anime.Slug = extractSlug(h.ChildAttr(`div.col-anime-title a`, `href`))
 		anime.Image = h.ChildAttr(`div.col-anime-cover img`, `src`)
 		anime.Episode = strings.ReplaceAll(h.ChildText(`div.col-anime-eps`), " Eps", "")
 		anime.URL = h.ChildAttr(`div.col-anime-title a`, `href`)
