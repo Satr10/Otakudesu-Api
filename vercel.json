@@ -1,5 +1,16 @@
 {
   "rewrites": [
-    { "source": "(.*)", "destination": "api/index.go" }
+    { "source": "/(.*)", "destination": "/api/index.go" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)", 
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=60, stale-while-revalidate" 
+        }
+      ]
+    }
   ]
 }
