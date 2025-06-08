@@ -217,7 +217,20 @@ func (s *Scraper) AnimePage(slug string) (anime models.AnimeDetail, err error) {
 //
 //   - Downloads: A slice of models.EpisodeDownloads instances, which contain the
 //     quality, size, and download URLs of the episode.
+//   - StreamingURL: The streaming URL of the episode, if available.
 func (s *Scraper) EpisodeDetailPage(slug string) (episode models.EpisodePage, err error) {
+	// find streaming URL
+	s.collector.OnHTML(`div.responsive-embed-stream iframe`, func(h *colly.HTMLElement) {
+		episodeDL := models.EpisodeDownloads{}
+		episodeDL.Quality = "Streaming"
+		episodeDL.Size = "N/A" // Size is not available for streaming
+		stream := models.Download{}
+		stream.Provider = "Streaming URL"
+		stream.DownloadURL = h.Attr(`src`)
+		episodeDL.Downloads = append(episodeDL.Downloads, stream)
+		episode.Downloads = append(episode.Downloads, episodeDL)
+	})
+
 	s.collector.OnHTML(`div.download ul li`, func(h *colly.HTMLElement) {
 		episodeDL := models.EpisodeDownloads{}
 		episodeDL.Quality = h.ChildText(`strong`)
